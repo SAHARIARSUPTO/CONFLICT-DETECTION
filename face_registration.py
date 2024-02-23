@@ -46,17 +46,17 @@ def register_faces():
                 cv2.imshow('Register Faces', frame)
                 cv2.waitKey(1000)  # Wait for 1 second
 
-                # Release the camera and close all OpenCV windows
-                cap.release()
-                cv2.destroyAllWindows()
-                return
+            # Release the camera
+            cap.release()
+            cv2.destroyAllWindows()
+            return
 
         # Show the frame
         cv2.imshow('Register Faces', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # Release the camera and close all OpenCV windows
+    # Release the camera
     cap.release()
     cv2.destroyAllWindows()
 

@@ -60,7 +60,7 @@ while True:
                                       np.array([[p.x, p.y] for p in registered_face_shape.parts()]))
 
             if distance < 100:
-                print(f"Distance for {name}: {distance}")  # Debugging output
+                print(f"Distance for {name}: {distance:.2f}")  # Debugging output with distance
                 print(f"Conflict detected with student ID: {student_id}, Name: {name}")
                 # Draw ID and name of registered face
                 cv2.putText(frame, f"ID: {student_id}, Name: {name}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -82,6 +82,9 @@ while True:
     # Check for 'q' key press to quit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+print(f"Number of faces detected: {len(faces)}")
+for i, face in enumerate(faces):
+    print(f"Face {i+1}: Left: {face.left()}, Top: {face.top()}, Right: {face.right()}, Bottom: {face.bottom()}")
 
 # Release the camera and close all OpenCV windows
 cap.release()
