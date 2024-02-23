@@ -18,8 +18,11 @@ for file in os.listdir('faces'):
         name = '_'.join(parts[:-1])
         student_id = parts[-1].split('.')[0]
         face_image = cv2.imread(os.path.join('faces', file), cv2.IMREAD_GRAYSCALE)
-        face_shape = predictor(face_image, dlib.rectangle(0, 0, face_image.shape[1], face_image.shape[0]))
-        registered_faces[student_id] = face_shape
+        
+        # Detect face landmarks
+        dlib_rect = dlib.rectangle(0, 0, face_image.shape[1], face_image.shape[0])
+        face_shape = predictor(face_image, dlib_rect)
+        registered_faces[student_id] = {'shape': face_shape, 'name': name}
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)
@@ -36,27 +39,43 @@ while True:
     # Detect faces in the grayscale frame
     faces = detector(gray)
 
-    # Initialize flag for conflict detection
-    conflict_detected = False
+    # Flag to track if any face is detected
+    face_detected = False
 
-    # Iterate through each detected face and compare with registered faces
+    # Iterate through each detected face
     for face in faces:
         # Detect face landmarks
         face_shape = predictor(gray, face)
 
+        # Initialize flag for recognized face
+        recognized = False
+
         # Compare detected landmarks with registered faces
-        for student_id, registered_face_shape in registered_faces.items():
-            # Extract coordinates of landmarks
-            landmarks1 = np.array([[p.x, p.y] for p in face_shape.parts()])
-            landmarks2 = np.array([[p.x, p.y] for p in registered_face_shape.parts()])
+        for student_id, details in registered_faces.items():
+            registered_face_shape = details['shape']
+            name = details['name']
 
             # Calculate the Euclidean distance between landmarks
-            distance = np.linalg.norm(landmarks1 - landmarks2)
+            distance = np.linalg.norm(np.array([[p.x, p.y] for p in face_shape.parts()]) -
+                                      np.array([[p.x, p.y] for p in registered_face_shape.parts()]))
+
             if distance < 100:
-                print(f"Conflict detected with student ID: {student_id}")
-                conflict_detected = True
+                print(f"Distance for {name}: {distance}")  # Debugging output
+                print(f"Conflict detected with student ID: {student_id}, Name: {name}")
+                # Draw ID and name of registered face
+                cv2.putText(frame, f"ID: {student_id}, Name: {name}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                face_detected = True
+                recognized = True
                 break
-    
+
+        # If face is recognized, break out of the inner loop
+        if recognized:
+            break
+
+    # If no face is detected, display a message
+    if not face_detected:
+        cv2.putText(frame, "No face detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
     # Show the frame
     cv2.imshow('Face Detection', frame)
 
